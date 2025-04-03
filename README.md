@@ -2,7 +2,9 @@
 
 This project is for the Kaggle Playground Series S5E3: [Binary Prediction with a Rainfall Dataset](https://www.kaggle.com/competitions/playground-series-s5e3/overview).
 
-The resulting model shows an 83.7% accuracy in predicting rainfall and a 0.891 AUC of predicted probabilities.
+In cross-validation on training data, the resulting model shows an 83.7% accuracy in predicting rainfall and a 0.891 AUC of predicted probabilities.
+
+In competition evaluation, the model showed an increased 0.8963 AUC of predicted probabilities. This placed in the 80th percentile of competitors (#847 out of 4,382 entrants). A previous version of this analysis without feature engineering would have placed in the 85th percentile (#640 out of 4,382 based on an AUC of 0.8975).
 
 ## Competition Background
 
@@ -42,15 +44,15 @@ All analysis was done in a Jupyter Notebook [file](rainfall.ipynb). Because my f
 - Credit to Lekha Topil for their notebook [Rainfall Prediction | EDA | LightGBM | CatBoost](https://www.kaggle.com/code/lekhatopil/rainfall-prediction-eda-lightgbm-catboost) and its feature engineering functions. This created a corrected `day` column, a `month` column, and several interaction features.
 - Data pre-processing and feature engineering could also be abbreviated because I intended to use an XGBoost model, which has methods for regularization and scaling feature importance.
 
-The focus of my model was practicing optimization of an XGBoost model with hyperparameter tuning. Please refer to the [XGBoost Parameters](https://xgboost.readthedocs.io/en/latest/parameter.html) documentation for more information on all of the parameters available. The primary scoring metric was AUC because of it's the competition evaluation metric, but I also tracked overall Accuracy.
+The focus of my model was practicing optimization of an XGBoost model with hyperparameter tuning. Please refer to the [XGBoost Parameters](https://xgboost.readthedocs.io/en/latest/parameter.html) documentation for more information on all the available parameters. The primary scoring metric was AUC because it's the competition evaluation metric, but I also tracked overall Accuracy.
 
 - I created a basic XGBoost model with mostly default parameters to assess baseline performance — 86.3% Acc, 0.885 AUC.
 - I performed a grid search using [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) for several XGBoost parameters: `max_depth`, `min_child_weight`, `gamma`, `subsample`, `colsample_bytree`, and `reg_alpha`.
   - The primary goal of these parameters is to prevent the model from overfitting the current data and having worse performance on new data, which was especially important with a small dataset.
-  - I initially performed the cross-validation grid searches with larger ranges for possible parameter values, but I re-ran CVGridSearch with smaller search spaces to fine-tune the values and cut down on computation time.
+  - I initially performed the cross-validation grid searches with wider ranges for possible parameter values, but I re-ran CVGridSearch with smaller search spaces to fine-tune the values and cut down on computation time.
   - The best cross-validation score was 0.885 AUC, not a significant improvement from the base model.
 - I then used the optimal hyperparameters to perform a second grid search for `n_estimators` and `learning_rate`, the two most powerful parameters.
-  - Like the first grid search, I refined the search space for subsequent runs to cut down computation and fine tune values.
+  - Like the first grid search, I refined the search space for subsequent runs to cut down computation and fine-tune values.
   - The best cross-validation score was 0.881, which was a slight decrease from the base model. However, this score was calculated through 5-fold cross-validation which is a more conservative evaluation than a train-test split.
 
 I fit a final model with the optimal parameters decided by the grid searches. The model performed similarly on the training and testing splits (0.910 vs 0.899 AUC), which would suggest that the model wasn't overfitting. With a lower chance of overfitting, I re-fit the model on all of the available training data.
@@ -61,6 +63,8 @@ I fit a final model with the optimal parameters decided by the grid searches. Th
 ## Results and Findings
 
 The final model showed an 83.7% accuracy and an AUC of 0.891 based on the predicted probabilities. The accuracy decreased slightly from the base model, but the AUC increased slightly.
+
+In competition evaluation, the model showed an increased 0.8963 AUC of predicted probabilities. This placed in the 80th percentile of competitors (#847 out of 4,382 entrants).
 
 A few findings:
 
@@ -78,9 +82,12 @@ Some ideas for future improvements with more time:
 
 - On larger datasets, [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html) would be significantly more efficient than GridSearchCV.
 - Other tree-based models should be evaluated, specifically [LightGBM](https://lightgbm.readthedocs.io/en/stable/) (especially on larger datasets) and [CatBoost](https://catboost.ai/).
-- Additional feature engineering would have greater performance improvements than better hyperparameter tuning—here and generally.
+- Additional feature engineering could have greater performance improvements than better hyperparameter tuning—here and generally.
+  - This is challenged by the results of the competition, where my initial model—without any additional feature engineering—would have scored better than the model after feature engineering (0.89748 versus 0.89626 AUC).
+  - This would suggest that adding too many additional features to a small dataset can lead to overfitting, even with XGBoost hyperparameters designed to regulate feature importance.
 - Based on competition scoring, this model is performing worse on the test data, so additional steps could be taken to prevent overfitting.
   - Ensembling multiple models could produce a more robust model.
-  - Pruning features could reduce overfitting—after feature engineering there are 61 inputs
+  - Pruning features could reduce overfitting—after feature engineering, there are 61 inputs.
+  - Earlier versions of the model without any additional feature engineering performed better.
 
-However, as an exercise in hyperparameter tuning for XGBoost, this analysis was a success.
+As an exercise in hyperparameter tuning for XGBoost, this analysis was a strong success.
